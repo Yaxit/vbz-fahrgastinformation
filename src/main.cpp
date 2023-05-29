@@ -16,16 +16,23 @@
 // GMT -1 = -3600
 // GMT 0 = 0
 int timeOffset = 3600;
-const char timeServer[11] = TIME_SERVER;
+const char timeServer[] = TIME_SERVER;
 int sensorValue;
 int loopCounter = 0;
 
-OpenTransportDataSwiss api(
-    OPEN_DATA_STATION,
+OpenTransportDataSwiss api_grimsel(
+    ID_GRIMSELSTRASSE,
     OPEN_DATA_DIRECTION,
     OPEN_DATA_URL,
     OPEN_DATA_API_KEY,
-    OPEN_DATA_RESULTS);
+    "1");
+
+OpenTransportDataSwiss api_altstetten(
+    ID_ALTSTETTEN_BANHOF,
+    "A",
+    OPEN_DATA_URL,
+    OPEN_DATA_API_KEY,
+    "4");
 
 Display display;
 
@@ -123,32 +130,56 @@ void loop()
   }
 
 #ifdef DEBUG
-  Serial.println("Time: " + timeClient.getFormattedDate());
+  // Serial.println("Time: " + timeClient.getFormattedDate());
 #endif
 
   // brightness sensor
   sensorValue = analogRead(A0);
   sensorValue = map(sensorValue, 0, 4095, 12, 255);
   display.displaySetBrightness(sensorValue);
-
+#ifdef DEBUG
+  Serial.println("Brightness: " + String(sensorValue));
+#endif
   // Serial.println(touchRead(touchRead(GPIO_NUM_32)));
 
   if (loopCounter == 0)
   {
-    if (int apiCode = api.getWebData(timeClient) == 0)
+    StaticJsonDocument<1500> doc;
+    JsonArray array = doc.to<JsonArray>();
+
+
+    if (int apiCode = api_grimsel.getWebData(timeClient) == 0)
     {
       // Serial.println(api.doc.as<String>());
-      display.printLines(api.doc.as<JsonArray>());
+      for (const auto &value : api_grimsel.doc.as<JsonArray>())
+      {
+        array.add(value);
+      }
     }
     else
     {
-      display.printError(api.httpLastError);
+      display.printError(api_grimsel.httpLastError);
     }
+
+    if (int apiCode = api_altstetten.getWebData(timeClient) == 0)
+    {
+      // Serial.println(api.doc.as<String>());
+      for (const auto &value : api_altstetten.doc.as<JsonArray>())
+      {
+        array.add(value);
+      }
+    }
+    else
+    {
+      display.printError(api_altstetten.httpLastError);
+    }
+
+    display.printLines(array);
   }
 
   loopCounter++;
 
-  if (loopCounter > 31)
+  if (loopCounter >= POLLING_FREQ_SECONDS)
   {
     loopCounter = 0;
   }

@@ -1,5 +1,7 @@
 #include <Display.h>
 
+#define LINE_COLOR_WIDTH 26
+
 void Display::begin(int r1_pin,
                     int g1_pin,
                     int b1_pin,
@@ -159,12 +161,6 @@ uint8_t Display::getRightAlignStartingPoint(const char *str, int16_t width)
     int advance = canvas.getCursorX() + 1;
 
 #ifdef DEBUG
-    // Serial.print("----");
-    // Serial.print(str);
-    // Serial.print(" cx:");
-    // Serial.print(advance);
-    // Serial.print(" r:");
-    // Serial.print(width);
     // Serial.print(" x1:");
     // Serial.print(x1);
     // Serial.print(" y1:");
@@ -227,7 +223,7 @@ void Display::printLine(String line, String lineRef, String destination, bool ac
     line.toCharArray(lineCh, 23);
     sprintf(infoLine, "%s", lineCh);
 
-    int xPos = Display::getRightAlignStartingPoint(line.c_str(), 23);
+    int xPos = Display::getRightAlignStartingPoint(line.c_str(), LINE_COLOR_WIDTH-1);
 
 #ifdef DEBUG
     // Serial.print(xPos);
@@ -238,7 +234,12 @@ void Display::printLine(String line, String lineRef, String destination, bool ac
     // Serial.print(":\n");
 #endif
 
-    Display::dma_display->fillRect(0, lineNumber, 24, 11, getVbzBackgroundColor(lineRef));
+    uint16_t lineColor = Display::getVbzBackgroundColor(lineRef);
+    if(line.startsWith("IR")){
+        lineColor = Display::vbzRed;
+        Serial.println("Updated Color");
+    }
+    Display::dma_display->fillRect(0, lineNumber, LINE_COLOR_WIDTH, 11, lineColor);
     Display::dma_display->setTextColor(Display::getVbzFontColor(lineRef));
     Display::dma_display->setCursor(xPos, lineNumber);
     Display::dma_display->print(infoLine);
@@ -249,7 +250,7 @@ void Display::printLine(String line, String lineRef, String destination, bool ac
     sprintf(infoLine, "%s", destinationCh);
 
     Display::dma_display->setTextColor(Display::vbzYellow);
-    Display::dma_display->setCursor(27, lineNumber);
+    Display::dma_display->setCursor(LINE_COLOR_WIDTH+3, lineNumber);
     Display::dma_display->setTextWrap(false);
     Display::dma_display->print(infoLine);
 
@@ -295,7 +296,7 @@ void Display::printLine(String line, String lineRef, String destination, bool ac
         } else {
             sprintf(ttlCh, "%d", timeToArrival);
         }
-        
+
         xPos = Display::getRightAlignStartingPoint(ttlCh, 16);
     }
 
