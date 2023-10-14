@@ -4,7 +4,6 @@
 #include <Arduino.h>
 #include <HTTPClient.h>
 #include <WiFiClientSecure.h>
-#include <NTPClient.h>
 #include <ArduinoJson.h>
 #include <UnixTime.h>
 #include <math.h>
@@ -30,7 +29,7 @@ public:
 
     StaticJsonDocument<1500> doc;
 
-    int getWebData(NTPClient timeClient);
+    int getWebData(String formattedDate);
     String FormatTimeStamp(String formattedDate, String format);
     uint32_t GetTimeToDeparture(String apiCallTime, String departureTime);
     uint32_t GetEpochTime(String dateTimeStamp);

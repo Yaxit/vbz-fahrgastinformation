@@ -14,7 +14,7 @@ OpenTransportDataSwiss::OpenTransportDataSwiss(String stopPointBPUIC,
     OpenTransportDataSwiss::apiKey = apiKey;
 }
 
-int OpenTransportDataSwiss::getWebData(NTPClient timeClient)
+int OpenTransportDataSwiss::getWebData(String formattedDate)
 {
     WiFiClientSecure *client = new WiFiClientSecure;
     if (client)
@@ -28,9 +28,6 @@ int OpenTransportDataSwiss::getWebData(NTPClient timeClient)
 
         // client->setCACert(rootCACertificate);
         client->setInsecure(); // should not be required
-
-        // get a timestamp to "now"
-        String formattedDate = timeClient.getFormattedDate();
 
         // Add a scoping block for HTTPClient https to make sure it is destroyed before WiFiClientSecure *client is
         HTTPClient https;

@@ -11,6 +11,7 @@
 #include <OpenTransportDataSwiss.h>
 
 // Set offset time in seconds to adjust for your timezone, for example:
+// Note: time offset is not necessary
 // GMT +1 = 3600
 // GMT +8 = 28800
 // GMT -1 = -3600
@@ -112,77 +113,63 @@ void setup()
     timeClient.begin();
     timeClient.setTimeOffset(timeOffset);
   }
+
+  // force one update to get epoch time
+  while(!timeClient.forceUpdate()); //internal timeout of 1s
+
 }
 
 void loop()
 {
   Portal.handleClient();
 
-  int timeTimer = 0;
-  while (!timeClient.update())
-  {
-    if (timeTimer > 30) {
-      display.printError("Unable to get time\nfrom NTP Server:\n" + (String) TIME_SERVER);
-    }
+  static unsigned char ntpErr = 0;
+  ntpErr = timeClient.update() ? 0 : ntpErr + 1;
 
-    timeClient.forceUpdate();
-    timeTimer++;
+  if(ntpErr>120/POLLING_FREQ_SECONDS)
+  {
+    display.printError("Unable to get time\nfrom NTP Server:\n" + (String) TIME_SERVER+"\nFailed "+(String)ntpErr+" times");
+    ntpErr = 0;
   }
 
-#ifdef DEBUG
-  // Serial.println("Time: " + timeClient.getFormattedDate());
-#endif
+  Serial.println(timeClient.getFormattedDate());
 
   // brightness sensor
   sensorValue = analogRead(A0);
   sensorValue = map(sensorValue, 0, 4095, 12, 255);
   display.displaySetBrightness(sensorValue);
-#ifdef DEBUG
-  Serial.println("Brightness: " + String(sensorValue));
-#endif
-  // Serial.println(touchRead(touchRead(GPIO_NUM_32)));
-
-  if (loopCounter == 0)
-  {
-    StaticJsonDocument<1500> doc;
-    JsonArray array = doc.to<JsonArray>();
 
 
-    if (int apiCode = api_grimsel.getWebData(timeClient) == 0)
-    {
-      // Serial.println(api.doc.as<String>());
-      for (const auto &value : api_grimsel.doc.as<JsonArray>())
-      {
-        array.add(value);
-      }
+  StaticJsonDocument<1500> doc;
+  JsonArray array = doc.to<JsonArray>();
+  int apiErr;
+
+  apiErr = api_grimsel.getWebData(timeClient.getFormattedDate());
+  if (!apiErr){
+    // Serial.println(api.doc.as<String>());
+    for (const auto &value : api_grimsel.doc.as<JsonArray>()){
+      array.add(value);
     }
-    else
-    {
-      display.printError(api_grimsel.httpLastError);
-    }
+  }
+  else{
+    display.printError(api_grimsel.httpLastError);
+  }
 
-    if (int apiCode = api_altstetten.getWebData(timeClient) == 0)
-    {
-      // Serial.println(api.doc.as<String>());
-      for (const auto &value : api_altstetten.doc.as<JsonArray>())
-      {
-        array.add(value);
-      }
+  apiErr |= api_altstetten.getWebData(timeClient.getFormattedDate());
+  if (!apiErr){
+    // Serial.println(api.doc.as<String>());
+    for (const auto &value : api_altstetten.doc.as<JsonArray>()){
+      array.add(value);
     }
-    else
-    {
-      display.printError(api_altstetten.httpLastError);
-    }
+  }
+  else{
+    display.printError(api_altstetten.httpLastError);
+  }
 
+  // only draw if no err to allow for error msg to be displayed
+  if(!apiErr){
     display.printLines(array);
   }
 
-  loopCounter++;
-
-  if (loopCounter >= POLLING_FREQ_SECONDS)
-  {
-    loopCounter = 0;
-  }
-
-  delay(1000);
+  delay(POLLING_FREQ_SECONDS*1000);
 }
