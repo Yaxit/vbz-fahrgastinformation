@@ -1,30 +1,40 @@
 #include <OpenTransportDataSwiss.h>
 
-OpenTransportDataSwiss::OpenTransportDataSwiss(String stopPointBPUIC,
-                                               String direction,
-                                               String openDataUrl,
+OpenTransportDataSwiss::OpenTransportDataSwiss(String openDataUrl,
                                                String apiKey,
-                                               String numResults)
+                                               int lateMinCutoff)
 {
 
-    OpenTransportDataSwiss::numResultsString = numResults;
-    OpenTransportDataSwiss::stopPointBPUIC = stopPointBPUIC;
-    OpenTransportDataSwiss::direction = direction;
     OpenTransportDataSwiss::openDataUrl = openDataUrl;
     OpenTransportDataSwiss::apiKey = apiKey;
+    OpenTransportDataSwiss::lateMinCutoff = lateMinCutoff;
 }
 
-int OpenTransportDataSwiss::getWebData(const String& formattedDate)
+// OpenTransportDataSwiss::OpenTransportDataSwiss(String stopPointBPUIC,
+//                                                String direction,
+//                                                String openDataUrl,
+//                                                String apiKey,
+//                                                String numResults)
+// {
+
+//     OpenTransportDataSwiss::numResultsString = numResults;
+//     OpenTransportDataSwiss::stopPointBPUIC = stopPointBPUIC;
+//     OpenTransportDataSwiss::direction = direction;
+//     OpenTransportDataSwiss::openDataUrl = openDataUrl;
+//     OpenTransportDataSwiss::apiKey = apiKey;
+// }
+
+int OpenTransportDataSwiss::getWebData(const String& stopPointBPUIC, const String& timeNow, const String& timeDeparture, int resultsToGet, const String& direction)
 {
     WiFiClientSecure *client = new WiFiClientSecure;
     if (client)
     {
         // If we only one one direction we need to get the double amount of results in order to fill the display
-        int resultsToGet = OpenTransportDataSwiss::numResultsString.toInt();
-        if (OpenTransportDataSwiss::direction != "A")
-        {
-            resultsToGet = resultsToGet * 2;
-        }
+        // int resultsToGet = OpenTransportDataSwiss::numResultsString.toInt();
+        // if (OpenTransportDataSwiss::direction != "A")
+        // {
+        //     resultsToGet = resultsToGet * 2;
+        // }
 
         // client->setCACert(rootCACertificate);
         client->setInsecure(); // should not be required
@@ -37,15 +47,15 @@ int OpenTransportDataSwiss::getWebData(const String& formattedDate)
         PostData += "xmlns:siri=\"http://www.siri.org.uk/siri\"";
         PostData += "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">";
         PostData += "<ServiceRequest>";
-        PostData += "    <siri:RequestTimestamp>" + OpenTransportDataSwiss::FormatTimeStamp(formattedDate, "RequestTimestamp") + "</siri:RequestTimestamp>";
+        PostData += "    <siri:RequestTimestamp>" + OpenTransportDataSwiss::FormatTimeStamp(timeNow, "RequestTimestamp") + "</siri:RequestTimestamp>";
         PostData += "    <siri:RequestorRef>API-Explorer</siri:RequestorRef>";
         PostData += "    <RequestPayload>";
         PostData += "        <StopEventRequest>";
         PostData += "            <Location>";
         PostData += "                <LocationRef>";
-        PostData += "                    <StopPointRef>" + OpenTransportDataSwiss::stopPointBPUIC + "</StopPointRef>";
+        PostData += "                    <StopPointRef>" + stopPointBPUIC + "</StopPointRef>";
         PostData += "                </LocationRef>";
-        PostData += "                <DepArrTime>" + OpenTransportDataSwiss::FormatTimeStamp(formattedDate, "DepArrTime") + "</DepArrTime>";
+        PostData += "                <DepArrTime>" + OpenTransportDataSwiss::FormatTimeStamp(timeDeparture, "DepArrTime") + "</DepArrTime>";
         PostData += "            </Location>";
         PostData += "            <Params>";
         PostData += "                <NumberOfResults>" + (String)resultsToGet + "</NumberOfResults>";
@@ -187,7 +197,7 @@ int OpenTransportDataSwiss::getWebData(const String& formattedDate)
 
                         // match direction if set and skip if it doesn't match
                         String refDirection = lineRef.substring(lineRef.lastIndexOf(":") + 1, lineRef.length());
-                        if (OpenTransportDataSwiss::direction != "A" && refDirection != OpenTransportDataSwiss::direction)
+                        if (direction != "A" && refDirection != direction)
                         {
                             continue;
                         }
@@ -196,7 +206,7 @@ int OpenTransportDataSwiss::getWebData(const String& formattedDate)
                         JsonObject item = doc2.to<JsonObject>();
 
                         item["departureTime"] = departureTime;
-                        item["ttl"] = OpenTransportDataSwiss::GetTimeToDeparture(formattedDate, departureTime);
+                        item["ttl"] = OpenTransportDataSwiss::GetTimeToDeparture(timeNow, departureTime);
                         item["liveData"] = liveData;
                         item["line"] = line;
                         item["lineRef"] = lineRef;

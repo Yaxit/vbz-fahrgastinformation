@@ -13,23 +13,19 @@ class OpenTransportDataSwiss
 
 public:
     OpenTransportDataSwiss(
-        String stopPointBPUIC,
-        String direction,
         String openDataUrl,
         String apiKey,
-        String numResults);
+        int lateMinCutoff);
 
-    String numResultsString;
-    int lateMinCutoff = 3;
-    String stopPointBPUIC;
-    String direction;
+    int lateMinCutoff;
     String openDataUrl;
     String apiKey;
     String httpLastError;
 
     StaticJsonDocument<1500> doc;
 
-    int getWebData(const String& formattedDate);
+    // int getWebData(const String& formattedDate);
+    int getWebData(const String& stopPointBPUIC, const String& timeNow, const String& timeDeparture, int resultsToGet, const String& direction);
     String FormatTimeStamp(const String& formattedDate, const String& format);
     uint32_t GetTimeToDeparture(const String& apiCallTime, const String& departureTime);
     uint32_t GetEpochTime(const String& dateTimeStamp);
@@ -38,5 +34,36 @@ public:
 private:
     const char *rootCACertificate;
 };
+
+// class OpenTransportDataSwiss
+// {
+
+// public:
+//     OpenTransportDataSwiss(
+//         String stopPointBPUIC,
+//         String direction,
+//         String openDataUrl,
+//         String apiKey,
+//         String numResults);
+
+//     String numResultsString;
+//     int lateMinCutoff = 3;
+//     String stopPointBPUIC;
+//     String direction;
+//     String openDataUrl;
+//     String apiKey;
+//     String httpLastError;
+
+//     StaticJsonDocument<1500> doc;
+
+//     int getWebData(const String& formattedDate);
+//     String FormatTimeStamp(const String& formattedDate, const String& format);
+//     uint32_t GetTimeToDeparture(const String& apiCallTime, const String& departureTime);
+//     uint32_t GetEpochTime(const String& dateTimeStamp);
+//     String getXmlValue(const String& xmlStartElement, const String& xmlEndElement, const String& xmlDocument);
+
+// private:
+//     const char *rootCACertificate;
+// };
 
 #endif

@@ -21,19 +21,23 @@ const char timeServer[] = TIME_SERVER;
 int sensorValue;
 int loopCounter = 0;
 
-OpenTransportDataSwiss api_grimsel(
-    ID_GRIMSELSTRASSE,
-    OPEN_DATA_DIRECTION,
+OpenTransportDataSwiss api(
     OPEN_DATA_URL,
     OPEN_DATA_API_KEY,
-    "1");
+    3);
+// OpenTransportDataSwiss api_grimsel(
+//     ID_GRIMSELSTRASSE,
+//     OPEN_DATA_DIRECTION,
+//     OPEN_DATA_URL,
+//     OPEN_DATA_API_KEY,
+//     "1");
 
-OpenTransportDataSwiss api_altstetten(
-    ID_ALTSTETTEN_BANHOF,
-    "A",
-    OPEN_DATA_URL,
-    OPEN_DATA_API_KEY,
-    "4");
+// OpenTransportDataSwiss api_altstetten(
+//     ID_ALTSTETTEN_BANHOF,
+//     "A",
+//     OPEN_DATA_URL,
+//     OPEN_DATA_API_KEY,
+//     "4");
 
 Display display;
 
@@ -144,27 +148,28 @@ void loop()
   JsonArray array = doc.to<JsonArray>();
   int apiErr;
 
-  String formattedDate = timeClient.getFormattedDate();
-  apiErr = api_grimsel.getWebData(formattedDate);
+  String nowDate = timeClient.getFormattedDate();
+  apiErr = api.getWebData(ID_GRIMSELSTRASSE, nowDate, nowDate, 2, OPEN_DATA_DIRECTION);
   if (!apiErr){
     // Serial.println(api.doc.as<String>());
-    for (const auto &value : api_grimsel.doc.as<JsonArray>()){
+    for (const auto &value : api.doc.as<JsonArray>()){
       array.add(value);
     }
   }
   else{
-    display.printError(api_grimsel.httpLastError);
+    display.printError(api.httpLastError);
   }
 
-  apiErr |= api_altstetten.getWebData(formattedDate);
+  String depDate = timeClient.getFormattedDate(timeClient.getEpochTime() + 6*60);
+  apiErr |= api.getWebData(ID_ALTSTETTEN_BANHOF, nowDate, depDate, 5, "A");
   if (!apiErr){
     // Serial.println(api.doc.as<String>());
-    for (const auto &value : api_altstetten.doc.as<JsonArray>()){
+    for (const auto &value : api.doc.as<JsonArray>()){
       array.add(value);
     }
   }
   else{
-    display.printError(api_altstetten.httpLastError);
+    display.printError(api.httpLastError);
   }
 
   // only draw if no err to allow for error msg to be displayed
