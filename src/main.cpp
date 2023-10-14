@@ -140,7 +140,7 @@ void loop()
 
   // brightness sensor
   sensorValue = analogRead(A0);
-  sensorValue = map(sensorValue, 0, 4095, 12, 255);
+  sensorValue = map(sensorValue, 0, 4095, 12, 200);
   display.displaySetBrightness(sensorValue);
 
 
