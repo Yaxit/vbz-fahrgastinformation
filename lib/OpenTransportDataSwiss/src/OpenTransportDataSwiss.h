@@ -29,11 +29,11 @@ public:
 
     StaticJsonDocument<1500> doc;
 
-    int getWebData(String formattedDate);
-    String FormatTimeStamp(String formattedDate, String format);
-    uint32_t GetTimeToDeparture(String apiCallTime, String departureTime);
-    uint32_t GetEpochTime(String dateTimeStamp);
-    String getXmlValue(String xmlStartElement, String xmlEndElement, String xmlDocument);
+    int getWebData(const String& formattedDate);
+    String FormatTimeStamp(const String& formattedDate, const String& format);
+    uint32_t GetTimeToDeparture(const String& apiCallTime, const String& departureTime);
+    uint32_t GetEpochTime(const String& dateTimeStamp);
+    String getXmlValue(const String& xmlStartElement, const String& xmlEndElement, const String& xmlDocument);
 
 private:
     const char *rootCACertificate;

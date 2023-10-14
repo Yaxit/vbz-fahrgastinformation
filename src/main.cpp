@@ -144,7 +144,8 @@ void loop()
   JsonArray array = doc.to<JsonArray>();
   int apiErr;
 
-  apiErr = api_grimsel.getWebData(timeClient.getFormattedDate());
+  String formattedDate = timeClient.getFormattedDate();
+  apiErr = api_grimsel.getWebData(formattedDate);
   if (!apiErr){
     // Serial.println(api.doc.as<String>());
     for (const auto &value : api_grimsel.doc.as<JsonArray>()){
@@ -155,7 +156,7 @@ void loop()
     display.printError(api_grimsel.httpLastError);
   }
 
-  apiErr |= api_altstetten.getWebData(timeClient.getFormattedDate());
+  apiErr |= api_altstetten.getWebData(formattedDate);
   if (!apiErr){
     // Serial.println(api.doc.as<String>());
     for (const auto &value : api_altstetten.doc.as<JsonArray>()){

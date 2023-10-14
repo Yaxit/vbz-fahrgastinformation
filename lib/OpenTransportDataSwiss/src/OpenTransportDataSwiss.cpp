@@ -14,7 +14,7 @@ OpenTransportDataSwiss::OpenTransportDataSwiss(String stopPointBPUIC,
     OpenTransportDataSwiss::apiKey = apiKey;
 }
 
-int OpenTransportDataSwiss::getWebData(String formattedDate)
+int OpenTransportDataSwiss::getWebData(const String& formattedDate)
 {
     WiFiClientSecure *client = new WiFiClientSecure;
     if (client)
@@ -148,7 +148,7 @@ int OpenTransportDataSwiss::getWebData(String formattedDate)
                         {
                             // Has no live data, use scheduled
                             departureTime = OpenTransportDataSwiss::getXmlValue(
-                                "<trias:TimetabledTime>",
+                                ("<trias:TimetabledTime>"),
                                 "</trias:TimetabledTime>",
                                 part);
                         }
@@ -196,7 +196,7 @@ int OpenTransportDataSwiss::getWebData(String formattedDate)
                         JsonObject item = doc2.to<JsonObject>();
 
                         item["departureTime"] = departureTime;
-                        item["ttl"] = OpenTransportDataSwiss::GetTimeToDeparture(OpenTransportDataSwiss::FormatTimeStamp(formattedDate, "RequestTimestamp"), departureTime);
+                        item["ttl"] = OpenTransportDataSwiss::GetTimeToDeparture(formattedDate, departureTime);
                         item["liveData"] = liveData;
                         item["line"] = line;
                         item["lineRef"] = lineRef;
@@ -258,7 +258,7 @@ int OpenTransportDataSwiss::getWebData(String formattedDate)
     return 1;
 }
 
-String OpenTransportDataSwiss::FormatTimeStamp(String formattedDate, String format)
+String OpenTransportDataSwiss::FormatTimeStamp(const String& formattedDate, const String& format)
 {
     // RequestTimestamp>2022-11-04T15:38:26.611Z
     // DepArrTime>2022-11-04T16:38:26
@@ -271,7 +271,7 @@ String OpenTransportDataSwiss::FormatTimeStamp(String formattedDate, String form
     return formattedDate.substring(0, formattedDate.lastIndexOf("."));
 }
 
-uint32_t OpenTransportDataSwiss::GetTimeToDeparture(String apiCallTime, String departureTime)
+uint32_t OpenTransportDataSwiss::GetTimeToDeparture(const String& apiCallTime, const String& departureTime)
 {
 
     // Serial.printf("apiCallTime: %s\n", apiCallTime.c_str());
@@ -293,7 +293,7 @@ uint32_t OpenTransportDataSwiss::GetTimeToDeparture(String apiCallTime, String d
     return round((dep - now) / 60);
 }
 
-uint32_t OpenTransportDataSwiss::GetEpochTime(String dateTimeStamp)
+uint32_t OpenTransportDataSwiss::GetEpochTime(const String& dateTimeStamp)
 {
 
     String dayStamp = dateTimeStamp.substring(0, dateTimeStamp.indexOf("T"));
@@ -313,7 +313,7 @@ uint32_t OpenTransportDataSwiss::GetEpochTime(String dateTimeStamp)
     return stamp.getUnix();
 }
 
-String OpenTransportDataSwiss::getXmlValue(String xmlStartElement, String xmlEndElement, String xmlDocument)
+String OpenTransportDataSwiss::getXmlValue(const String& xmlStartElement, const String& xmlEndElement, const String& xmlDocument)
 {
     return xmlDocument.substring(
         xmlDocument.indexOf(xmlStartElement) + xmlStartElement.length(),
